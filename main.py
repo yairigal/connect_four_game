@@ -1,4 +1,4 @@
-import sys
+import argparse
 import time
 
 from game import ConnectFour
@@ -30,12 +30,12 @@ def who_won(players, game):
             return index
 
 
-def play(p1, p2):
+def play(p1, p2, difficulty):
     """Start a game vs human player."""
     game = ConnectFour()
     players = [
-        PLAYERS[p1.lower()]('x', 'o', game),
-        PLAYERS[p2.lower()]('o', 'x', game)
+        PLAYERS[p1.lower()]('x', 'o', game, difficulty=difficulty),
+        PLAYERS[p2.lower()]('o', 'x', game, difficulty=difficulty)
     ]
 
     turn = 0
@@ -49,7 +49,6 @@ def play(p1, p2):
             print('DRAW')
             break
 
-        time.sleep(1)
         player = players[turn]
         game.place(player.mark, player.turn())
         game.draw()
@@ -119,11 +118,27 @@ def player_vs_player_statistics(n=100):
     print(f'P1 wins={wins[0]} P2 wins={wins[1]} draws={draws}')
 
 
+def parse_cli_arguments():
+    parser = argparse.ArgumentParser(description='Play connect four.')
+    parser.add_argument('--player1',
+                        type=str,
+                        dest='player1',
+                        default='computer',
+                        help='one of: computer, human, random.')
+    parser.add_argument('--player2',
+                        type=str,
+                        dest='player2',
+                        default='human',
+                        help='one of: computer, human, random.')
+    parser.add_argument('--difficulty', dest='difficulty',
+                        type=int,
+                        default=5,
+                        help='the computer player difficulty, notice that difficulty 6 and above takes a lot of time '
+                             'to evaluate.')
+    args = parser.parse_args()
+    return args
+
+
 if __name__ == '__main__':
-    player1 = 'computer'
-    player2 = 'human'
-
-    if len(sys.argv) > 1:
-        player1, player2 = sys.argv[1:]
-
-    play(player1, player2)
+    args = parse_cli_arguments()
+    play(args.player1, args.player2, args.difficulty)

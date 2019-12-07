@@ -18,12 +18,14 @@ class Player:
         mark (str): the icon of the player on the board.
         opponent (str): the icon of the opponent on the board.
         game (ConnectFour): the game instance.
+        difficulty (number): the max depth of the minimax tree.
     """
 
-    def __init__(self, mark: str, opponent: str, game: ConnectFour):
+    def __init__(self, mark: str, opponent: str, game: ConnectFour, difficulty=5, **kwargs):
         self.mark = mark
         self.opponent = opponent
         self.game = game
+        self.depth = difficulty
 
     @property
     def won(self):
@@ -54,10 +56,10 @@ class Player:
         Returns:
             number. the index of the column to place at.
         """
-        _, spot = self.negamax()
+        _, spot = self.negamax(depth=self.depth)
         return spot
 
-    def negamax(self, depth=4, alpha=-math.inf, beta=math.inf):
+    def negamax(self, depth=5, alpha=-math.inf, beta=math.inf):
         """Implementation of the Negamax search algorithm.
 
         Args:
@@ -137,7 +139,7 @@ class Player:
 
 
 class RandomPlayer:
-    def __init__(self, mark: str, opponent: str, game: ConnectFour):
+    def __init__(self, mark: str, opponent: str, game: ConnectFour, **kwargs):
         self.mark = mark
         self.opponent = opponent
         self.game = game
@@ -152,7 +154,7 @@ class RandomPlayer:
 
 
 class HumanPlayer:
-    def __init__(self, mark: str, opponent: str, game: ConnectFour):
+    def __init__(self, mark: str, opponent: str, game: ConnectFour, **kwargs):
         self.mark = mark
         self.opponent = opponent
         self.game = game
