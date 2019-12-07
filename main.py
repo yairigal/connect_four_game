@@ -1,7 +1,14 @@
+import sys
 import time
 
 from game import ConnectFour
 from players import Player, HumanPlayer, RandomPlayer
+
+PLAYERS = {
+    'computer': Player,
+    'random': RandomPlayer,
+    'human': HumanPlayer
+}
 
 
 def all_columns_are_full(board):
@@ -23,12 +30,12 @@ def who_won(players, game):
             return index
 
 
-def player_vs_human():
+def play(p1, p2):
     """Start a game vs human player."""
     game = ConnectFour()
     players = [
-        Player('x', 'o', game),
-        HumanPlayer('o', 'x', game)
+        PLAYERS[p1.lower()]('x', 'o', game),
+        PLAYERS[p2.lower()]('o', 'x', game)
     ]
 
     turn = 0
@@ -113,4 +120,10 @@ def player_vs_player_statistics(n=100):
 
 
 if __name__ == '__main__':
-    player_vs_human()
+    player1 = 'computer'
+    player2 = 'human'
+
+    if len(sys.argv) > 1:
+        player1, player2 = sys.argv[1:]
+
+    play(player1, player2)
