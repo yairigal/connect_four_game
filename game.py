@@ -37,7 +37,7 @@ def color(func):
         with mock_stdout() as output:
             func(self)
             char_to_color = {}
-            colors = ['green', 'fail']
+            colors = ['fail','green']
             for i, mark in enumerate(self.moves.keys()):
                 char_to_color[mark] = colors[i]
 

@@ -94,8 +94,8 @@ def player_vs_player_statistics(n=100):
         start = time.time()
         game = ConnectFour()
         players = [
-            Player('x', 'o', game),
-            Player('o', 'x', game)
+            Player('x', 'o', game, difficulty=6),
+            Player('o', 'x', game, difficulty=6)
         ]
 
         turn = 0
