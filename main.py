@@ -1,121 +1,80 @@
 import argparse
-import time
+import json
+import logging
+from pathlib import Path
 
 from game import ConnectFour
-from players import Player, HumanPlayer, RandomPlayer
+import players
 
-PLAYERS = {
-    'computer': Player,
-    'random': RandomPlayer,
-    'human': HumanPlayer
-}
-
-
-def all_columns_are_full(board):
-    return all(board.is_column_full(column) for column in range(board.width))
-
-
-def who_won(players, game):
-    """Checks which one of the players won.
-
-    Args:
-        players (list): list of Player objects.
-        game (ConnectFour): the game object.
-
-    Returns:
-        number. the index of the winning player in the list, None if no one won.
-    """
-    for index, player in enumerate(players):
-        if game.is_winner(player.mark):
-            return index
-
-
-def play(p1, p2, difficulty):
-    """Start a game vs human player."""
-    game = ConnectFour()
-    players = [
-        PLAYERS[p1.lower()]('x', 'o', game, difficulty=difficulty),
-        PLAYERS[p2.lower()]('o', 'x', game, difficulty=difficulty)
-    ]
-
-    turn = 0
-    while True:
-        index = who_won(players, game)
-        if index is not None:
-            print(f'Player {index + 1} WON')
-            break
-
-        if all_columns_are_full(game):
-            print('DRAW')
-            break
-
-        player = players[turn]
-        game.place(player.mark, player.turn())
-        game.draw()
-        turn = 1 - turn
+logging.basicConfig(level=logging.DEBUG,
+                    datefmt='%Y-%m-%d %H:%M:%S',
+                    format='%(asctime)s.%(msecs)03d: %(message)s')
+logger = logging.getLogger(__name__)
 
 
 def player_vs_random_statistics(n=100):
     """Run n games with player vs random player."""
     wins = [0, 0]
     draws = 0
-    for _ in range(n):
-        game = ConnectFour()
-        players = [
-            Player('x', 'o', game),
-            RandomPlayer('o', 'x', game)
-        ]
+    for i in range(n):
+        winner = ConnectFour.play(players.MinimaxPlayer, players.RandomPlayer, verbose=False, difficulty=5)
+        if winner == -1:
+            draws += 1
 
-        turn = 0
-        while True:
-            index = who_won(players, game)
-            if index is not None:
-                print(f'Player {index + 1} WON')
-                wins[index] += 1
-                break
+        else:
+            wins[winner] += 1
 
-            if all_columns_are_full(game):
-                print('DRAW')
-                draws += 1
-                break
+    logger.info(f'Negamax wins={wins[0]} random player wins={wins[1]} draws={draws}')
 
-            player = players[turn]
-            game.place(player.mark, player.turn())
-            turn = 1 - turn
 
-    print(f'Negamax wins={wins[0]} random player wins={wins[1]} draws={draws}')
+def monte_carlo_vs_negamax_statistics(n=100, difficulty=5, games=500):
+    filename = Path(f'monte_carlo_minimax_diff{difficulty}_games{games}')
+    if filename.exists():
+        with filename.open('r') as f:
+            wins = json.load(f)
+
+    else:
+        wins = [0, 0]
+
+    for i in range(n):
+        # print(f'Game #{i}')
+        winner = ConnectFour.play(players.MonteCarloPlayer, players.MinimaxPlayer, verbose=False, difficulty=difficulty,
+                                  games=games)
+        wins[winner] += 1
+        with filename.open('w') as f:
+            json.dump(wins, f)
+
+    print(f"MonteCarlo won {wins[0]} times while Minimax won {wins[1]} times")
+
+
+def monte_carlo_vs_random_statistics(n=100):
+    wins = [0, 0]
+    draws = 0
+    for i in range(n):
+        print(f'Game #{i}')
+        winner = ConnectFour.play(players.MonteCarloPlayer, players.RandomPlayer, verbose=False)
+        if winner == -1:
+            draws += 1
+
+        else:
+            wins[winner] += 1
+
+    print(f"MonteCarlo won {wins[0]} times while Random won {wins[1]} times")
 
 
 def player_vs_player_statistics(n=100):
     """Run n games with player vs itself."""
     wins = [0, 0]
     draws = 0
-    for _ in range(n):
-        start = time.time()
-        game = ConnectFour()
-        players = [
-            Player('x', 'o', game, difficulty=6),
-            Player('o', 'x', game, difficulty=6)
-        ]
+    for i in range(n):
+        winner = ConnectFour.play(players.MinimaxPlayer, players.MinimaxPlayer, verbose=False, difficulty=6)
+        if winner == -1:
+            draws += 1
 
-        turn = 0
-        while True:
-            index = who_won(players, game)
-            if index is not None:
-                print(f'Player {index + 1} WON')
-                wins[index] += 1
-                break
+        else:
+            wins[winner] += 1
 
-            if all_columns_are_full(game):
-                print(f'DRAW {time.time() - start}s')
-                draws += 1
-                break
-
-            player = players[turn]
-            game.place(player.mark, player.turn())
-            turn = 1 - turn
-
-    print(f'P1 wins={wins[0]} P2 wins={wins[1]} draws={draws}')
+    logger.info(f'Negamax wins={wins[0]} random player wins={wins[1]} draws={draws}')
 
 
 def parse_cli_arguments():
@@ -135,10 +94,17 @@ def parse_cli_arguments():
                         default=5,
                         help='the computer player difficulty, notice that difficulty 6 and above takes a lot of time '
                              'to evaluate.')
+    parser.add_argument('--games', dest='games',
+                        type=int,
+                        default=500,
+                        help='the amount of games per turn that the monte_carlo agents will play.')
     args = parser.parse_args()
     return args
 
 
 if __name__ == '__main__':
     args = parse_cli_arguments()
-    play(args.player1, args.player2, args.difficulty)
+    p1 = players.PLAYERS[args.player1]
+    p2 = players.PLAYERS[args.player2]
+    ConnectFour.play(p1, p2, difficulty=args.difficulty, games=args.games)
+    # player_vs_random_statistics(n=10000)

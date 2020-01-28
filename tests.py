@@ -1,5 +1,5 @@
 from game import ConnectFour
-from players import Player
+from players import MinimaxPlayer
 
 
 def test_winner_row():
@@ -131,7 +131,7 @@ def test_case_2():
 
     c.draw()
 
-    p = Player('x', 'o', c)
+    p = MinimaxPlayer('x', 'o', c)
     assert c.possible_win('o', n=3) == 1
     assert p.turn() == 3
 
@@ -399,7 +399,7 @@ def test_board_full():
         ['x', 'x', 'o', 'o', 'o', 'x', 'x'],
         ['o', 'o', 'o', 'x', 'o', 'o', 'x'],
     ])
-    p = Player('x', 'o', c)
+    p = MinimaxPlayer('x', 'o', c)
     assert p.turn() == 0
 
     c.place('x', 0)
@@ -416,7 +416,7 @@ def test_board_full2():
         ['o', 'x', 'x', 'o', 'o', 'x', 'x'],
         ['x', 'x', 'o', 'x', 'x', 'o', 'o'],
     ])
-    p = Player('x', 'o', c)
+    p = MinimaxPlayer('x', 'o', c)
     spot = p.turn()
     assert (spot == 1 or spot == 3)
 

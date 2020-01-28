@@ -1,9 +1,9 @@
 """Connect four game infrastructure implementation."""
-import sys
-import itertools
-from io import StringIO
 from collections import defaultdict
 from contextlib import contextmanager
+from io import StringIO
+import itertools
+import sys
 
 
 class bcolors:
@@ -22,6 +22,7 @@ class bcolors:
         color_object = getattr(bcolors, color.upper())
         return f"{color_object}{message}{bcolors.ENDC}"
 
+
 @contextmanager
 def mock_stdout():
     """Capture stdout and process the text."""
@@ -30,6 +31,7 @@ def mock_stdout():
     yield sys.stdout
     sys.stdout = old_stdout
 
+
 def color(func):
     """Color each player's character in different color."""
 
@@ -37,7 +39,7 @@ def color(func):
         with mock_stdout() as output:
             func(self)
             char_to_color = {}
-            colors = ['fail','green']
+            colors = ['fail', 'green']
             for i, mark in enumerate(self.moves.keys()):
                 char_to_color[mark] = colors[i]
 
@@ -49,9 +51,11 @@ def color(func):
 
     return wrapper
 
+
 class ColumnFull(OverflowError):
     def __init__(self, index, *args, **kwargs):
         super().__init__(f"Column {index} is full")
+
 
 class ConnectFour:
     """Connect four game implementation.
@@ -193,6 +197,9 @@ class ConnectFour:
 
         return amount
 
+    def __hash__(self):
+        return hash(tuple(tuple(row) for row in self.board))
+
     @staticmethod
     def is_sublist(contained_list, container_list):
         """Validate if the contained list is contained in the container list.
@@ -239,3 +246,62 @@ class ConnectFour:
             yield x, y
             x += d_x
             y += d_y
+
+    @staticmethod
+    def all_columns_are_full(board):
+        return all(board.is_column_full(column) for column in range(board.width))
+
+    @staticmethod
+    def who_won(players, game):
+        """Checks which one of the players won.
+
+        Args:
+            players (list): list of Player objects.
+            game (ConnectFour): the game object.
+
+        Returns:
+            number. the index of the winning player in the list, None if no one won.
+        """
+        for index, player in enumerate(players):
+            if game.is_winner(player.mark):
+                return index
+
+    @staticmethod
+    def play(p1, p2, game=None, verbose=True, **players_args):
+        """Start a game vs human player."""
+        if game is None:
+            game = ConnectFour()
+
+        if type(p1) is not type and type(p2) is not type:
+            players = [p1, p2]
+
+        elif type(p1) is type and type(p2) is type:
+            players = [
+                p1('x', 'o', game, **players_args),
+                p2('o', 'x', game, **players_args)
+            ]
+
+        else:
+            raise TypeError('Both player arguments should be instances or types')
+
+        turn = 0
+        while True:
+            index = ConnectFour.who_won(players, game)
+            if index is not None:
+                if verbose:
+                    print(f'Player {index + 1} WON')
+
+                return index
+
+            if ConnectFour.all_columns_are_full(game):
+                if verbose:
+                    print('DRAW')
+
+                return -1
+
+            player = players[turn]
+            game.place(player.mark, player.turn())
+            if verbose:
+                game.draw()
+
+            turn = 1 - turn
