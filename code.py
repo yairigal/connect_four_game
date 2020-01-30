@@ -892,12 +892,12 @@ def parse_cli_arguments():
                         type=str,
                         dest='player1',
                         default='computer',
-                        help='one of: computer, human, random.')
+                        help='one of: computer, human, random, monte_carlo')
     parser.add_argument('--player2',
                         type=str,
                         dest='player2',
                         default='human',
-                        help='one of: computer, human, random.')
+                        help='one of: computer, human, random, monte_carlo')
     parser.add_argument('--difficulty', dest='difficulty',
                         type=int,
                         default=5,
@@ -924,5 +924,5 @@ if __name__ == '__main__':
     args = parse_cli_arguments()
     p1 = PLAYERS[args.player1]
     p2 = PLAYERS[args.player2]
-    ConnectFour.play(p1, p2, difficulty=args.difficulty, games=args.games)
+    ConnectFour.play(p1, p2, difficulty=args.difficulty, number_of_games=args.games)
     # player_vs_random_statistics(n=10000)

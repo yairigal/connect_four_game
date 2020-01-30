@@ -9,6 +9,7 @@ player can be one of the following:
 * `computer` - smart player
 * `random` - random player
 * `human` - human player.
+* `monte_carlo` - monte_carlo player
 
 difficulty can be from 1 to 10. notice that above 6, the computer takes time to play each turn.
 

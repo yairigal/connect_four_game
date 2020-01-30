@@ -106,5 +106,5 @@ if __name__ == '__main__':
     args = parse_cli_arguments()
     p1 = players.PLAYERS[args.player1]
     p2 = players.PLAYERS[args.player2]
-    ConnectFour.play(p1, p2, difficulty=args.difficulty, games=args.games)
+    ConnectFour.play(p1, p2, difficulty=args.difficulty, number_of_games=args.games)
     # player_vs_random_statistics(n=10000)
